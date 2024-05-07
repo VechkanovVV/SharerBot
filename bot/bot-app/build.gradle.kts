@@ -17,14 +17,19 @@ repositories {
 }
 
 dependencies {
+
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	
+	implementation("org.springframework:spring-webflux:6.1.6")
+	implementation("com.github.pengrad:java-telegram-bot-api:6.6.0")
+
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
+	compileOnly("org.projectlombok:lombok:1.18.32")
 
-	implementation("com.github.pengrad:java-telegram-bot-api:6.6.0")
+	annotationProcessor("org.projectlombok:lombok:1.18.32")
+
 }
 
 tasks.withType<Test> {
