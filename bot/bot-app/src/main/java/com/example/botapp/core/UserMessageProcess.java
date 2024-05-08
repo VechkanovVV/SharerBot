@@ -9,8 +9,11 @@ import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +25,7 @@ public class UserMessageProcess {
     private final BackendClient backendClient;
     private static List<? extends Command> commands;
     private static final Map<Long, ChatStateInfo> chatState = new HashMap<>();
+    private  static Map<Long, List<Long>> searchFiles = new HashMap<>();
 
     @Autowired
     public UserMessageProcess(TelegramBot bot, BackendClient backendClient, List<? extends Command> commands) {
@@ -56,9 +60,25 @@ public class UserMessageProcess {
         if (chatStateInfo.getChatState() == State.Search) {
             String fileName = updateModel.message().text();
             try{
-                FilesListResponse files = backendClient.findFile(fileName);
-                log.info(files.toString());
-
+                FilesListResponse response = backendClient.findFile(fileName);
+                log.info(response.toString());
+                String message = "";
+                 if (response.files().isEmpty()){
+                     message += "File does not exist, please provide another file";
+                 } else{
+                     searchFiles.put(chatStateInfo.getChatId(), new ArrayList<>());
+                    for (int i = 0; i < response.files().size(); i++){
+                        message +=("|" +(i) +"|"+  "file name: " + response.files().get(i).fileName() +"\n"
+                                + response.files().get(i).fileDescription());
+                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(),response.files().get(i).owner_id());
+                    }
+                 }
+                return new SendMessage(chatStateInfo.getChatId(), message);
+            }  catch (WebClientResponseException e) {
+                if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
+                    throw e;
+                }
+                return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
             }
         }
         return null;
