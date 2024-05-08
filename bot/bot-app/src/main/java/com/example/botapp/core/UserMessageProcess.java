@@ -29,7 +29,7 @@ public class UserMessageProcess {
     private final BackendClient backendClient;
     private static List<? extends Command> commands;
     private static final Map<Long, ChatStateInfo> chatState = new HashMap<>();
-    private static Map<Long, List<FileInformation>> searchFiles = new HashMap<>();
+    private static final Map<Long, List<FileInformation>> searchFiles = new HashMap<>();
 
     @Autowired
     public UserMessageProcess(TelegramBot bot, BackendClient backendClient, List<? extends Command> commands) {
