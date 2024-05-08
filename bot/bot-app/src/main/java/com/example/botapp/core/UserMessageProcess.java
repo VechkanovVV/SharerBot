@@ -29,7 +29,7 @@ public class UserMessageProcess {
     private final BackendClient backendClient;
     private static List<? extends Command> commands;
     private static final Map<Long, ChatStateInfo> chatState = new HashMap<>();
-    private static Map<Long, List<Long>> searchFiles = new HashMap<>();
+    private static Map<Long, List<FileInformation>> searchFiles = new HashMap<>();
 
     @Autowired
     public UserMessageProcess(TelegramBot bot, BackendClient backendClient, List<? extends Command> commands) {
@@ -73,7 +73,12 @@ public class UserMessageProcess {
                     searchFiles.put(chatStateInfo.getChatId(), new ArrayList<>());
                     for (int i = 0; i < response.files().size(); i++) {
                         message.append("|").append(i).append("|").append("file name: ").append(response.files().get(i).fileName()).append("\n").append(response.files().get(i).fileDescription());
-                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(), response.files().get(i).owner_id());
+
+                        FileInformation f = new FileInformation();
+                        f.setFileName(response.files().get(i).fileName());
+                        f.setReceiverId(chatStateInfo.getChatId());
+                        f.setOwnerId(response.files().get(i).owner_id());
+                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(),f);
                     }
                 }
                 chatState.remove(chatStateInfo.getChatId());
@@ -90,9 +95,27 @@ public class UserMessageProcess {
             if (!searchFiles.containsKey(chatId)){
                 return new SendMessage(chatStateInfo.getChatId(), "Please, before using the file selection function, try using the search function");
             }
-            Long ownerId = Long.parseLong(updateModel.message().text());
+            int index = Integer.parseInt(updateModel.message().text());
+            if (index < 0 || index >=searchFiles.get(chatId).size()){
+                return new SendMessage(chatStateInfo.getChatId(), "Please, use correct index");
+            }
+            FileInformation f = searchFiles.get(chatId).get(index);
             DownloadFileRequest request = new DownloadFileRequest();
-            request.setFileName();
+            request.setFileName(f.fileName);
+            request.setReceiverId(f.receiverId);
+            request.setOwnerId(f.ownerId);
+            searchFiles.remove(chatId);
+            chatState.remove(chatId);
+            try {
+                backendClient.downloadFile(request);
+                return new SendMessage(chatStateInfo.getChatId(), "Requesting permission to download from the copyright holder\n Please wait, or try again after a while!");
+            } catch (WebClientResponseException e) {
+                if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
+                    throw e;
+                }
+                chatState.remove(chatStateInfo.getChatId());
+                return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
+            }
         }
 
         return null;

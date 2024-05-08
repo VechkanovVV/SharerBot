@@ -1,5 +1,6 @@
 package com.example.botapp.client;
 
+import com.example.botapp.client.request.DownloadFileRequest;
 import com.example.botapp.client.request.SetPermissionRequest;
 import com.example.botapp.client.request.UploadFileRequest;
 import com.example.botapp.client.response.FilesListResponse;
@@ -46,6 +47,14 @@ public class BackendClient {
     public void setPermission(SetPermissionRequest request){
         backendClient.post()
                 .uri("set_permission")
+                .bodyValue(request)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
+    public void downloadFile(DownloadFileRequest request){
+        backendClient.post()
+                .uri("download_file")
                 .bodyValue(request)
                 .retrieve()
                 .toBodilessEntity()
