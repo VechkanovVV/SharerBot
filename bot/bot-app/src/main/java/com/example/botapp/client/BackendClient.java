@@ -1,5 +1,6 @@
 package com.example.botapp.client;
 
+import com.example.botapp.client.request.SetPermissionRequest;
 import com.example.botapp.client.request.UploadFileRequest;
 import com.example.botapp.client.response.FilesListResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,13 @@ public class BackendClient {
                 .block();
     }
 
-    public void setPermission()
+    public void setPermission(SetPermissionRequest request){
+        backendClient.post()
+                .uri("set_permission")
+                .bodyValue(request)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
 
 }
