@@ -8,5 +8,4 @@ public class UploadFileRequest {
     @JsonProperty("file_id") Long fileId;
     @JsonProperty("file_description") String fileDescription;
     @JsonProperty("file_name") String fileName;
-
 }
