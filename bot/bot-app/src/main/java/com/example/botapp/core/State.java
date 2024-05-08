@@ -1,8 +1,12 @@
 package com.example.botapp.core;
 
 public enum State {
-    COMPLETE,
-    InProgress,
-    FileSelect
+    Waiting,
+    Upload,
+    Download,
+    Search,
+    FileSelect,
+    AllowDownload,
+    RejectDownload,
 }
 
