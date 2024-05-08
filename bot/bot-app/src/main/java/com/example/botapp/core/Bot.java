@@ -7,14 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
-
 @Slf4j
 @Component
 public class Bot {
     private final TelegramBot bot;
 
     @Autowired
-    public Bot (BotConfiguration botConfig){
+    public Bot(BotConfiguration botConfig) {
         this.bot = botConfig.telegramBot();
     }
 }

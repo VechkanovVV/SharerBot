@@ -1,8 +1,12 @@
 package com.example.botapp.core;
 
 import com.example.botapp.client.BackendClient;
+import com.example.botapp.client.request.DownloadFileRequest;
+import com.example.botapp.client.request.UploadFileRequest;
 import com.example.botapp.client.response.FilesListResponse;
 import com.example.botapp.core.commands.Command;
+import com.example.botapp.core.commands.DownloadFileCommand;
+import com.example.botapp.core.commands.UploadFileCommand;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -25,7 +29,7 @@ public class UserMessageProcess {
     private final BackendClient backendClient;
     private static List<? extends Command> commands;
     private static final Map<Long, ChatStateInfo> chatState = new HashMap<>();
-    private  static Map<Long, List<Long>> searchFiles = new HashMap<>();
+    private static Map<Long, List<Long>> searchFiles = new HashMap<>();
 
     @Autowired
     public UserMessageProcess(TelegramBot bot, BackendClient backendClient, List<? extends Command> commands) {
@@ -57,30 +61,38 @@ public class UserMessageProcess {
                 }
             }
         }
-        if (chatStateInfo.getChatState() == State.Search) {
+        else if (chatStateInfo.getChatState() == State.Search) {
             String fileName = updateModel.message().text();
-            try{
+            try {
                 FilesListResponse response = backendClient.findFile(fileName);
                 log.info(response.toString());
                 StringBuilder message = new StringBuilder();
-                 if (response.files().isEmpty()){
-                     message.append("File does not exist, please provide another file");
-                 } else{
-                     searchFiles.put(chatStateInfo.getChatId(), new ArrayList<>());
-                    for (int i = 0; i < response.files().size(); i++){
+                if (response.files().isEmpty()) {
+                    message.append("File does not exist, please provide another file");
+                } else {
+                    searchFiles.put(chatStateInfo.getChatId(), new ArrayList<>());
+                    for (int i = 0; i < response.files().size(); i++) {
                         message.append("|").append(i).append("|").append("file name: ").append(response.files().get(i).fileName()).append("\n").append(response.files().get(i).fileDescription());
-                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(),response.files().get(i).owner_id());
+                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(), response.files().get(i).owner_id());
                     }
-                 }
-                 chatState.remove(chatStateInfo.getChatId());
+                }
+                chatState.remove(chatStateInfo.getChatId());
                 return new SendMessage(chatStateInfo.getChatId(), message.toString());
-            }  catch (WebClientResponseException e) {
+            } catch (WebClientResponseException e) {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
                 chatState.remove(chatStateInfo.getChatId());
                 return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
             }
+        } else if (chatStateInfo.getChatState() == State.FileSelect){
+            Long chatId = chatStateInfo.getChatId();
+            if (!searchFiles.containsKey(chatId)){
+                return new SendMessage(chatStateInfo.getChatId(), "Please, before using the file selection function, try using the search function");
+            }
+            Long ownerId = Long.parseLong(updateModel.message().text());
+            DownloadFileRequest request = new DownloadFileRequest();
+            request.setFileName();
         }
 
         return null;
