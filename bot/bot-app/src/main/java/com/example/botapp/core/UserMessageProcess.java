@@ -1,6 +1,7 @@
 package com.example.botapp.core;
 
 import com.example.botapp.client.BackendClient;
+import com.example.botapp.client.response.FilesListResponse;
 import com.example.botapp.core.commands.Command;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
@@ -39,22 +40,31 @@ public class UserMessageProcess {
         }
         ChatStateInfo chatStateInfo = chatState.get(updateModel.message().chat().id());
         String textMessage = updateModel.message().text();
-        if (chatStateInfo == null) {
-            Long chatId = updateModel.message().chat().id();
-            chatState.put(chatId, new ChatStateInfo(chatId, State.Waiting));
-            chatStateInfo = chatState.get(updateModel.message().chat().id());
-        }
         if (textMessage != null) {
             log.info("Get user message with id: " + chatStateInfo.getChatId() + ",with message: \"" + textMessage + "\"");
 
         }
-        if (textMessage != null && chatStateInfo.getChatState() == State.Waiting){
+        if (chatStateInfo == null && chatStateInfo.getChatState() == State.Waiting) {
+            if (textMessage.startsWith("/")) {
+                for (Command com : commands()) {
+                    if (com.supports(updateModel)) {
+                        return com.handle(updateModel);
+                    }
+                }
+            }
+        }
+        if (chatStateInfo.getChatState() == State.Search) {
+            String fileName = updateModel.message().text();
+            try{
+                FilesListResponse files = backendClient.findFile(fileName);
+                log.info(files.toString());
 
+            }
         }
         return null;
     }
 
-    public static void setState(Long chatId, State state){
+    public static void setState(Long chatId, State state) {
         chatState.put(chatId, new ChatStateInfo(chatId, state));
     }
 }
