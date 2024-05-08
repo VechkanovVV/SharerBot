@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DownloadFileCommand implements Command {
-    private static final String COMMAND = "/Download file";
+    private static final String COMMAND = "/download_file";
     private static final String DESCRIPTION = "Command to download file";
     private static final String MESSAGE = """
             Please provide your file and save it in this chat!
