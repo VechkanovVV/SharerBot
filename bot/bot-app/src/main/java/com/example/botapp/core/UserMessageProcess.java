@@ -62,25 +62,27 @@ public class UserMessageProcess {
             try{
                 FilesListResponse response = backendClient.findFile(fileName);
                 log.info(response.toString());
-                String message = "";
+                StringBuilder message = new StringBuilder();
                  if (response.files().isEmpty()){
-                     message += "File does not exist, please provide another file";
+                     message.append("File does not exist, please provide another file");
                  } else{
                      searchFiles.put(chatStateInfo.getChatId(), new ArrayList<>());
                     for (int i = 0; i < response.files().size(); i++){
-                        message +=("|" +(i) +"|"+  "file name: " + response.files().get(i).fileName() +"\n"
-                                + response.files().get(i).fileDescription());
+                        message.append("|").append(i).append("|").append("file name: ").append(response.files().get(i).fileName()).append("\n").append(response.files().get(i).fileDescription());
                         searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(),response.files().get(i).owner_id());
                     }
                  }
-                return new SendMessage(chatStateInfo.getChatId(), message);
+                 chatState.remove(chatStateInfo.getChatId());
+                return new SendMessage(chatStateInfo.getChatId(), message.toString());
             }  catch (WebClientResponseException e) {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
+                chatState.remove(chatStateInfo.getChatId());
                 return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
             }
         }
+
         return null;
     }
 
