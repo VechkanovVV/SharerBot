@@ -5,18 +5,26 @@ import com.example.botapp.core.commands.Command;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.BotCommand;
+import com.pengrad.telegrambot.model.Document;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.InputFile;
 import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.request.GetFile;
+import com.pengrad.telegrambot.request.SendDocument;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.BaseResponse;
+import com.pengrad.telegrambot.response.GetFileResponse;
+import com.pengrad.telegrambot.response.SendResponse;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.net.NioEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +45,13 @@ public class Bot implements AutoCloseable, UpdatesListener {
                 .description("The count of messages sent by users that have been processed.")
                 .register(registry);
     }
+
     @PostConstruct
     public void init() {
         setCommands();
         bot.setUpdatesListener(this);
     }
+
     private void setCommands() {
         List<BotCommand> botCommands = new ArrayList<>();
         for (Command c : UserMessageProcess.commands()) {
@@ -51,13 +61,19 @@ public class Bot implements AutoCloseable, UpdatesListener {
         bot.execute(setMyCommands);
     }
 
-    public void sendRequest(Long ownerId,Long recId,String fileName){
-        String text = "The user with chat id: "+recId +"\n"+"Wants to download a file with name: "+fileName+ "\n"
-                +"/set_permission to allow the download" +"\n"
-                +"/reject_permission to prohibit downloading";
+    public void sendRequest(Long ownerId, Long recId, String fileName) {
+        String text = "The user with chat id: " + recId + "\n" + "Wants to download a file with name: " + fileName + "\n"
+                + "/set_permission to allow the download" + "\n"
+                + "/reject_permission to prohibit downloading";
         SendMessage message;
-        message = new SendMessage(ownerId,text);
+        message = new SendMessage(ownerId, text);
         bot.execute(message);
+    }
+
+    public void sendFile(String fileId, Long ownerId, Long recId) {
+        SendDocument sendDocument = new SendDocument(recId,fileId);
+        bot.execute(sendDocument);
+
     }
 
     @Override
@@ -67,7 +83,7 @@ public class Bot implements AutoCloseable, UpdatesListener {
             try {
                 message = userMessageProcess.process(update);
             } catch (UnsupportedOperationException e) {
-                message = new SendMessage(update.message().chat().id(),MarkDown.process("Sorry, I don't understand you. Try /help to see list of commands"));
+                message = new SendMessage(update.message().chat().id(), MarkDown.process("Sorry, I don't understand you. Try /help to see list of commands"));
             }
             if (message != null) {
                 message.parseMode(ParseMode.MarkdownV2);

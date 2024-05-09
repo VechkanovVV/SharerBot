@@ -25,6 +25,10 @@ public class BotController {
     }
     @PostMapping("/send_file")
     public  ResponseEntity<Void> sendFile(@NotNull @RequestBody FileSenderRequest request){
+        String fileId = request.fileId();
+        Long ownerId = request.ownerId();
+        Long recId = request.id();
+        bot.sendFile(fileId, ownerId, recId);
         return ResponseEntity.ok().build();
     }
 }

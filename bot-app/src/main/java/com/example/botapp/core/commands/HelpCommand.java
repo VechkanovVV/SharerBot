@@ -32,6 +32,6 @@ public class HelpCommand implements Command {
             builder.append(c.description());
             builder.append("\n");
         }
-        return new SendMessage(update.message().chat().id(), MarkDown.process(update.message().chat().id().toString()));
+        return new SendMessage(update.message().chat().id(), MarkDown.process(builder.toString()));
     }
 }
