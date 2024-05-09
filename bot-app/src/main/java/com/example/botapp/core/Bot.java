@@ -64,7 +64,7 @@ public class Bot implements AutoCloseable, UpdatesListener {
     }
 
     public void sendFile(String fileId, Long ownerId, Long recId) {
-        SendDocument sendDocument = new SendDocument(recId,fileId);
+        SendDocument sendDocument = new SendDocument(recId, fileId);
         bot.execute(sendDocument);
 
     }

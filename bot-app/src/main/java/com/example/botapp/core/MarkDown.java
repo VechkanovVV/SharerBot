@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public final class MarkDown {
     private MarkDown() {
     }
+
     @NotNull
     @Contract(pure = true)
     public static String process(@NotNull String str) {

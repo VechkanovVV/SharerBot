@@ -9,12 +9,13 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class UploadFileCommand implements Command{
+public class UploadFileCommand implements Command {
     private static final String COMMAND = "/upload_file";
     private static final String DESCRIPTION = "Command to upload your file";
     private static final String MESSAGE = """
             Please provide the file.
             """;
+
     @Override
     public String command() {
         return COMMAND;

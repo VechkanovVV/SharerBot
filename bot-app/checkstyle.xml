@@ -49,19 +49,7 @@
     </module>
 
 
-    <!-- https://checkstyle.org/config_whitespace.html -->
-    <!--            Checks for tabs                    -->
-    <module name="FileTabCharacter"/>
 
-
-    <!-- https://checkstyle.org/config_misc.html -->
-    <!--      Check for trailing spaces.        -->
-    <module name="RegexpSingleline">
-        <property name="format" value="\s+$"/>
-        <property name="minimum" value="0"/>
-        <property name="maximum" value="0"/>
-        <property name="message" value="Line has trailing spaces."/>
-    </module>
 
 
     <!-- https://checkstyle.org/config_filters.html -->

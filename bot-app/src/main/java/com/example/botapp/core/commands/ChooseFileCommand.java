@@ -8,12 +8,13 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ChooseFileCommand  implements Command{
+public class ChooseFileCommand  implements Command {
     private static final String COMMAND = "/choose_file";
     private static final String DESCRIPTION = "Command to choose a file from a list";
     private static final String MESSAGE = """
            Please specify the index of the file you want to download!
             """;
+
     @Override
     public String command() {
         return COMMAND;

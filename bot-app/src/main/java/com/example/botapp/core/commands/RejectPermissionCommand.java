@@ -14,6 +14,7 @@ public class RejectPermissionCommand implements Command {
     private static final String MESSAGE = """
             You have not allowed the file to be uploaded
             """;
+
     @Override
     public String command() {
         return COMMAND;

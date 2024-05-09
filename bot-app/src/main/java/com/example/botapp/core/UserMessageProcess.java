@@ -28,9 +28,10 @@ public class UserMessageProcess {
     private final TelegramBot bot;
     private final BackendClient backendClient;
     private static List<? extends Command> commands;
-    private static final Map<Long, ChatStateInfo> chatState = new HashMap<>();
-    private static final Map<Long, List<FileInformation>> searchFiles = new HashMap<>();
+    private static final Map<Long, ChatStateInfo> CHAT_STATE = new HashMap<>();
+    private static final Map<Long, List<FileInformation>> SEARCH_FIELS = new HashMap<>();
     private final static String UNSUPPORTED_COMMAND = "Unsupported command";
+    private final static String WRONG_FORMAT = "wrong format";
 
     @Autowired
     public UserMessageProcess(TelegramBot bot, BackendClient backendClient, List<? extends Command> commands) {
@@ -47,13 +48,13 @@ public class UserMessageProcess {
         if (updateModel.message() == null) {
             return null;
         }
-        ChatStateInfo chatStateInfo = chatState.get(updateModel.message().chat().id());
+        ChatStateInfo chatStateInfo = CHAT_STATE.get(updateModel.message().chat().id());
         String textMessage = updateModel.message().text();
         if (chatStateInfo != null) {
             log.info("Get user message with id: " + chatStateInfo.getChatId() + ",with message: \"" + textMessage + "\"");
 
-        } else if (textMessage != null){
-            log.info("Get user message with id: " + ",with message: \"" + textMessage + "\"");
+        } else if (textMessage != null) {
+            log.info("Get user message \"" + textMessage + "\"");
         }
         if (chatStateInfo == null) {
             if (textMessage.startsWith("/")) {
@@ -72,42 +73,42 @@ public class UserMessageProcess {
                 if (response.files().isEmpty()) {
                     message.append("File does not exist, please provide another file");
                 } else {
-                    searchFiles.put(chatStateInfo.getChatId(), new ArrayList<>());
+                    SEARCH_FIELS.put(chatStateInfo.getChatId(), new ArrayList<>());
                     for (int i = 0; i < response.files().size(); i++) {
                         message.append("|").append(i).append("|").append("file name: ").append(response.files().get(i).fileName()).append("\n").append(response.files().get(i).fileDescription());
 
                         FileInformation f = new FileInformation();
                         f.setFileName(response.files().get(i).fileName());
                         f.setReceiverId(chatStateInfo.getChatId());
-                        f.setOwnerId(response.files().get(i).owner_id());
-                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(), f);
+                        f.setOwnerId(response.files().get(i).ownerId());
+                        SEARCH_FIELS.get(chatStateInfo.getChatId()).add(SEARCH_FIELS.get(chatStateInfo.getChatId()).size(), f);
                     }
                 }
-                chatState.remove(chatStateInfo.getChatId());
+                CHAT_STATE.remove(chatStateInfo.getChatId());
                 return new SendMessage(chatStateInfo.getChatId(), MarkDown.process(message.toString()));
             } catch (WebClientResponseException e) {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
-                chatState.remove(chatStateInfo.getChatId());
-                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Wrong format"));
+                CHAT_STATE.remove(chatStateInfo.getChatId());
+                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process(WRONG_FORMAT));
             }
         } else if (chatStateInfo.getChatState() == State.FileSelect) {
             Long chatId = chatStateInfo.getChatId();
-            if (!searchFiles.containsKey(chatId)) {
+            if (!SEARCH_FIELS.containsKey(chatId)) {
                 return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Please, before using the file selection function, try using the search function"));
             }
             int index = Integer.parseInt(updateModel.message().text());
-            if (index < 0 || index >= searchFiles.get(chatId).size()) {
+            if (index < 0 || index >= SEARCH_FIELS.get(chatId).size()) {
                 return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Please, use correct index"));
             }
-            FileInformation f = searchFiles.get(chatId).get(index);
+            FileInformation f = SEARCH_FIELS.get(chatId).get(index);
             DownloadFileRequest request = new DownloadFileRequest();
             request.setFileName(f.fileName);
             request.setReceiverId(f.receiverId);
             request.setOwnerId(f.ownerId);
-            searchFiles.remove(chatId);
-            chatState.remove(chatId);
+            SEARCH_FIELS.remove(chatId);
+            CHAT_STATE.remove(chatId);
             try {
                 backendClient.downloadFile(request);
                 return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Requesting permission to download from the copyright holder\n Please wait, or try again after a while!"));
@@ -115,14 +116,14 @@ public class UserMessageProcess {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
-                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Wrong format"));
+                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process(WRONG_FORMAT));
             }
         } else if (chatStateInfo.getChatState() == State.AllowDownload) {
             String[] input = (updateModel.message().text()).split(" ");
             if (input.length != 2) {
                 return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Please, use correct format"));
             }
-            chatState.remove(chatStateInfo.getChatId());
+            CHAT_STATE.remove(chatStateInfo.getChatId());
             try {
                 SetPermissionRequest request = new SetPermissionRequest(chatStateInfo.getChatId(), Long.parseLong(input[0]), input[1]);
                 backendClient.setPermission(request);
@@ -131,12 +132,12 @@ public class UserMessageProcess {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
-                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Wrong format"));
+                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process(WRONG_FORMAT));
             }
 
         } else if (chatStateInfo.getChatState() == State.RejectDownload) {
-            chatState.remove(chatStateInfo.getChatId());
-            return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("You have allowed the file to be uploaded"));
+            CHAT_STATE.remove(chatStateInfo.getChatId());
+            return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("You have not allowed the file to be uploaded"));
         } else if (chatStateInfo.getChatState() == State.Upload) {
             Document document = updateModel.message().document();
             String description = updateModel.message().text();
@@ -145,7 +146,7 @@ public class UserMessageProcess {
             request.setOwnerId(chatStateInfo.getChatId());
             request.setFileName(document.fileName());
             request.setFileDescription(description);
-            chatState.remove(chatStateInfo.getChatId());
+            CHAT_STATE.remove(chatStateInfo.getChatId());
             try {
                 backendClient.uploadFile(request);
                 return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("You have uploaded your file to the server!"));
@@ -153,13 +154,13 @@ public class UserMessageProcess {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
-                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process("Wrong format"));
+                return new SendMessage(chatStateInfo.getChatId(), MarkDown.process(WRONG_FORMAT));
             }
         }
         throw new UnsupportedOperationException(UNSUPPORTED_COMMAND);
     }
 
     public static void setState(Long chatId, State state) {
-        chatState.put(chatId, new ChatStateInfo(chatId, state));
+        CHAT_STATE.put(chatId, new ChatStateInfo(chatId, state));
     }
 }

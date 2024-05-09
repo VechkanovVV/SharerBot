@@ -15,10 +15,11 @@ public class BackendClient {
     private final WebClient backendClient;
 
     @Autowired
-    public BackendClient(WebClient backendClient){
+    public BackendClient(WebClient backendClient) {
         this.backendClient = backendClient;
     }
-    public FilesListResponse findFile(String fileName){
+
+    public FilesListResponse findFile(String fileName) {
         try {
             return backendClient.get()
                     .uri(uriBuilder -> uriBuilder
@@ -35,7 +36,8 @@ public class BackendClient {
             return new FilesListResponse(null);
         }
     }
-    public void uploadFile(UploadFileRequest uploadFile){
+
+    public void uploadFile(UploadFileRequest uploadFile) {
         backendClient.post()
                 .uri("upload_file")
                 .bodyValue(uploadFile)
@@ -44,7 +46,7 @@ public class BackendClient {
                 .block();
     }
 
-    public void setPermission(SetPermissionRequest request){
+    public void setPermission(SetPermissionRequest request) {
         backendClient.post()
                 .uri("set_permission")
                 .bodyValue(request)
@@ -52,7 +54,8 @@ public class BackendClient {
                 .toBodilessEntity()
                 .block();
     }
-    public void downloadFile(DownloadFileRequest request){
+
+    public void downloadFile(DownloadFileRequest request) {
         backendClient.post()
                 .uri("download_file")
                 .bodyValue(request)

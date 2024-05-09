@@ -10,11 +10,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication
 @EnableConfigurationProperties(ApplicationConfig.class)
 public class BotAppApplication {
-
 	public static void main(String[] args) {
 		var ctx = SpringApplication.run(BotAppApplication.class, args);
 		ApplicationConfig config = ctx.getBean(ApplicationConfig.class);
 		log.info(config.toString());
 	}
-
 }
