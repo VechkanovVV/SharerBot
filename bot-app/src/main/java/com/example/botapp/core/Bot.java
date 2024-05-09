@@ -51,8 +51,13 @@ public class Bot implements AutoCloseable, UpdatesListener {
         bot.execute(setMyCommands);
     }
 
-    public void sendRequest(Long owner_id,Long rec_id,String file_name){
-
+    public void sendRequest(Long ownerId,Long recId,String fileName){
+        String text = "The user with chat id: "+recId +"\n"+"Wants to download a file with name: "+fileName+ "\n"
+                +"/set_permission to allow the download" +"\n"
+                +"/reject_permission to prohibit downloading";
+        SendMessage message;
+        message = new SendMessage(ownerId,text);
+        bot.execute(message);
     }
 
     @Override
