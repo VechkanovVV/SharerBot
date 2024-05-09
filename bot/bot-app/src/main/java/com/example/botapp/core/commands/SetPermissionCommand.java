@@ -11,7 +11,8 @@ public class SetPermissionCommand implements Command{
     private static final String COMMAND = "/set_permission";
     private static final String DESCRIPTION = "Command to allow file upload";
     private static final String MESSAGE = """
-            You have allowed the file to be uploaded
+            Please provide recipient's ID and file name! \n
+            Format: "rec_id file_name.file_format"
             """;
     @Override
     public String command() {

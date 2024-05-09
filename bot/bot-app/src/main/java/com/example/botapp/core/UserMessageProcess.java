@@ -2,12 +2,12 @@ package com.example.botapp.core;
 
 import com.example.botapp.client.BackendClient;
 import com.example.botapp.client.request.DownloadFileRequest;
+import com.example.botapp.client.request.SetPermissionRequest;
 import com.example.botapp.client.request.UploadFileRequest;
 import com.example.botapp.client.response.FilesListResponse;
 import com.example.botapp.core.commands.Command;
-import com.example.botapp.core.commands.DownloadFileCommand;
-import com.example.botapp.core.commands.UploadFileCommand;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Document;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +30,7 @@ public class UserMessageProcess {
     private static List<? extends Command> commands;
     private static final Map<Long, ChatStateInfo> chatState = new HashMap<>();
     private static final Map<Long, List<FileInformation>> searchFiles = new HashMap<>();
+    private final static String UNSUPPORTED_COMMAND = "Unsupported command";
 
     @Autowired
     public UserMessageProcess(TelegramBot bot, BackendClient backendClient, List<? extends Command> commands) {
@@ -43,7 +44,7 @@ public class UserMessageProcess {
     }
 
     public SendMessage process(@NotNull Update updateModel) {
-        if (updateModel.message().text() == null) {
+        if (updateModel.message() == null) {
             return null;
         }
         ChatStateInfo chatStateInfo = chatState.get(updateModel.message().chat().id());
@@ -52,7 +53,7 @@ public class UserMessageProcess {
             log.info("Get user message with id: " + chatStateInfo.getChatId() + ",with message: \"" + textMessage + "\"");
 
         }
-        if (chatStateInfo == null && chatStateInfo.getChatState() == State.Waiting) {
+        if (chatStateInfo == null) {
             if (textMessage.startsWith("/")) {
                 for (Command com : commands()) {
                     if (com.supports(updateModel)) {
@@ -60,8 +61,7 @@ public class UserMessageProcess {
                     }
                 }
             }
-        }
-        else if (chatStateInfo.getChatState() == State.Search) {
+        } else if (chatStateInfo.getChatState() == State.Search) {
             String fileName = updateModel.message().text();
             try {
                 FilesListResponse response = backendClient.findFile(fileName);
@@ -78,7 +78,7 @@ public class UserMessageProcess {
                         f.setFileName(response.files().get(i).fileName());
                         f.setReceiverId(chatStateInfo.getChatId());
                         f.setOwnerId(response.files().get(i).owner_id());
-                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(),f);
+                        searchFiles.get(chatStateInfo.getChatId()).add(searchFiles.get(chatStateInfo.getChatId()).size(), f);
                     }
                 }
                 chatState.remove(chatStateInfo.getChatId());
@@ -90,13 +90,13 @@ public class UserMessageProcess {
                 chatState.remove(chatStateInfo.getChatId());
                 return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
             }
-        } else if (chatStateInfo.getChatState() == State.FileSelect){
+        } else if (chatStateInfo.getChatState() == State.FileSelect) {
             Long chatId = chatStateInfo.getChatId();
-            if (!searchFiles.containsKey(chatId)){
+            if (!searchFiles.containsKey(chatId)) {
                 return new SendMessage(chatStateInfo.getChatId(), "Please, before using the file selection function, try using the search function");
             }
             int index = Integer.parseInt(updateModel.message().text());
-            if (index < 0 || index >=searchFiles.get(chatId).size()){
+            if (index < 0 || index >= searchFiles.get(chatId).size()) {
                 return new SendMessage(chatStateInfo.getChatId(), "Please, use correct index");
             }
             FileInformation f = searchFiles.get(chatId).get(index);
@@ -113,12 +113,49 @@ public class UserMessageProcess {
                 if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
                     throw e;
                 }
-                chatState.remove(chatStateInfo.getChatId());
+                return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
+            }
+        } else if (chatStateInfo.getChatState() == State.AllowDownload) {
+            //@JsonProperty("owner_id") Long id, @JsonProperty("receiver_id") Long receiverId, @JsonProperty("file_name") String fileName
+            String[] input = (updateModel.message().text()).split(" ");
+            if (input.length != 2) {
+                return new SendMessage(chatStateInfo.getChatId(), "Please, use correct format");
+            }
+            chatState.remove(chatStateInfo.getChatId());
+            try {
+                SetPermissionRequest request = new SetPermissionRequest(chatStateInfo.getChatId(), Long.parseLong(input[0]), input[1]);
+                backendClient.setPermission(request);
+                return new SendMessage(chatStateInfo.getChatId(), "You have allowed the file to be uploaded");
+            } catch (WebClientResponseException e) {
+                if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
+                    throw e;
+                }
+                return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
+            }
+
+        } else if (chatStateInfo.getChatState() == State.RejectDownload) {
+            chatState.remove(chatStateInfo.getChatId());
+            return new SendMessage(chatStateInfo.getChatId(), "You have allowed the file to be uploaded");
+        } else if (chatStateInfo.getChatState() == State.Upload){
+            Document document = updateModel.message().document();
+            String description = updateModel.message().text();
+            UploadFileRequest request = new UploadFileRequest();
+            request.setFileId(document.fileId());
+            request.setOwnerId(chatStateInfo.getChatId());
+            request.setFileName(document.fileName());
+            request.setFileDescription(description);
+            chatState.remove(chatStateInfo.getChatId());
+            try{
+                backendClient.uploadFile(request);
+                return new SendMessage(chatStateInfo.getChatId(), "You have uploaded your file to the server!");
+            } catch (WebClientResponseException e) {
+                if (e.getStatusCode() != HttpStatus.UNSUPPORTED_MEDIA_TYPE) {
+                    throw e;
+                }
                 return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
             }
         }
-
-        return null;
+        throw new UnsupportedOperationException(UNSUPPORTED_COMMAND);
     }
 
     public static void setState(Long chatId, State state) {
