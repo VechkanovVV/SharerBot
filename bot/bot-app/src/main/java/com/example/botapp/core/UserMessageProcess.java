@@ -116,7 +116,6 @@ public class UserMessageProcess {
                 return new SendMessage(chatStateInfo.getChatId(), "Wrong format");
             }
         } else if (chatStateInfo.getChatState() == State.AllowDownload) {
-            //@JsonProperty("owner_id") Long id, @JsonProperty("receiver_id") Long receiverId, @JsonProperty("file_name") String fileName
             String[] input = (updateModel.message().text()).split(" ");
             if (input.length != 2) {
                 return new SendMessage(chatStateInfo.getChatId(), "Please, use correct format");
@@ -136,7 +135,7 @@ public class UserMessageProcess {
         } else if (chatStateInfo.getChatState() == State.RejectDownload) {
             chatState.remove(chatStateInfo.getChatId());
             return new SendMessage(chatStateInfo.getChatId(), "You have allowed the file to be uploaded");
-        } else if (chatStateInfo.getChatState() == State.Upload){
+        } else if (chatStateInfo.getChatState() == State.Upload) {
             Document document = updateModel.message().document();
             String description = updateModel.message().text();
             UploadFileRequest request = new UploadFileRequest();
@@ -145,7 +144,7 @@ public class UserMessageProcess {
             request.setFileName(document.fileName());
             request.setFileDescription(description);
             chatState.remove(chatStateInfo.getChatId());
-            try{
+            try {
                 backendClient.uploadFile(request);
                 return new SendMessage(chatStateInfo.getChatId(), "You have uploaded your file to the server!");
             } catch (WebClientResponseException e) {
