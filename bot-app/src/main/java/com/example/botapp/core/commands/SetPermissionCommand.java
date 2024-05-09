@@ -1,5 +1,6 @@
 package com.example.botapp.core.commands;
 
+import com.example.botapp.core.MarkDown;
 import com.example.botapp.core.State;
 import com.example.botapp.core.UserMessageProcess;
 import com.pengrad.telegrambot.model.Update;
@@ -28,6 +29,6 @@ public class SetPermissionCommand implements Command{
     public SendMessage handle(Update update) {
         Long chatId = update.message().chat().id();
         UserMessageProcess.setState(chatId, State.AllowDownload);
-        return new SendMessage(chatId,MESSAGE);
+        return new SendMessage(chatId, MarkDown.process(MESSAGE));
     }
 }

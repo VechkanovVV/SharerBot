@@ -15,6 +15,11 @@ public class BotController {
     private final Bot bot;
     @PostMapping("/request_permission")
     public ResponseEntity<Void> requestPermission(RequestPermission request){
+        //JsonProperty("file_name") String fileName, @JsonProperty("owner_id") Long ownerId, @JsonProperty("id")
+        String file_name = request.fileName();;
+        Long owner_id = request.ownerId();
+        Long rec_id = request.id();
+        bot.sendRequest(owner_id, rec_id, file_name);
       return ResponseEntity.ok().build();
     }
     @PostMapping("/send_file")

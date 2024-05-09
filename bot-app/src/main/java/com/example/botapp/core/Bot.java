@@ -51,6 +51,10 @@ public class Bot implements AutoCloseable, UpdatesListener {
         bot.execute(setMyCommands);
     }
 
+    public void sendRequest(Long owner_id,Long rec_id,String file_name){
+
+    }
+
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
@@ -58,7 +62,7 @@ public class Bot implements AutoCloseable, UpdatesListener {
             try {
                 message = userMessageProcess.process(update);
             } catch (UnsupportedOperationException e) {
-                message = new SendMessage(update.message().chat().id(),"Sorry, I don't understand you. Try /help to see list of commands");
+                message = new SendMessage(update.message().chat().id(),MarkDown.process("Sorry, I don't understand you. Try /help to see list of commands"));
             }
             if (message != null) {
                 message.parseMode(ParseMode.MarkdownV2);
