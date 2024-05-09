@@ -65,8 +65,8 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v4
         with:
-          context: bot
-          file: ./bot/Dockerfile
+          context: bot-app
+          file: ./bot-app/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ghcr.io/${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
