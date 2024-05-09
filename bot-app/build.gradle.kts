@@ -22,7 +22,6 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework:spring-webflux:6.1.6")
@@ -38,6 +37,11 @@ dependencies {
 
     annotationProcessor("org.projectlombok:lombok:1.18.32")
 
+    checkstyle("com.puppycrawl.tools:checkstyle:10.10.0")
+
+}
+checkstyle {
+    configFile = rootProject.file("checkstyle.xml")
 }
 
 tasks.withType<Test> {
