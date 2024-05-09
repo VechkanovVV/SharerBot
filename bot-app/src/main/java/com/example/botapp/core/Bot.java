@@ -5,26 +5,19 @@ import com.example.botapp.core.commands.Command;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.BotCommand;
-import com.pengrad.telegrambot.model.Document;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.request.InputFile;
 import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendDocument;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.BaseResponse;
-import com.pengrad.telegrambot.response.GetFileResponse;
-import com.pengrad.telegrambot.response.SendResponse;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.net.NioEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
