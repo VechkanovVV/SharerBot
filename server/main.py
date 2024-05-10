@@ -11,21 +11,26 @@ from server_requests.SendFileRequest import SendFileRequest
 from bot_requests.SetPermissionRequest import SetPermissionRequest as BotSetPermissionRequest
 from bot_requests.SendFileRequest import SendFileRequest as BotSendFileRequest
 
-# TODO: logs
-# TODO: optimisation
+logging.basicConfig(
+    level=logging.INFO,
+    filename="/var/log/server/server.log",
+    filemode="w",
+    format="%(asctime)s %(levelname)s %(message)s"
+)
 file_id_len = 255
 file_name_len = 255
 file_description_len = 65535
-bot_url = f""
+bot_url = f"http://localhost:8081"
 app = FastAPI()
 
 
-# TODO:
 @app.get("/find_file")
-def find_file(request: FindFileRequest) -> JSONResponse:
+async def find_file(request: FindFileRequest) -> JSONResponse:
     if len(request.file_name) > file_name_len:
+        logging.warning(f"File name '{request.file_name}' is too long")
         return jsonable_encoder([])
 
+    logging.info(f"File search with file_name: {request.file_name}")
     db_response = db.find_file(request.file_name)
     response = jsonable_encoder(
         [
@@ -37,14 +42,17 @@ def find_file(request: FindFileRequest) -> JSONResponse:
             for row in db_response
         ]
     )
+    logging.info(f"File search response")
     return JSONResponse(content=response)
 
 
 @app.get("/download_file")
-def download_file(request: SendFileRequest) -> None:
+async def download_file(request: SendFileRequest) -> None:
     if len(request.file_name) > file_name_len:
+        logging.warning(f"File name '{request.file_name}' is too long")
         return
 
+    logging.info(f"Permission request")
     response = requests.post(
         bot_url + "/request_permission",
         jsonable_encoder(
@@ -57,10 +65,13 @@ def download_file(request: SendFileRequest) -> None:
     )
 
     if response.status_code == 200:
+        logging.info(f"Permission received")
+        logging.info(f"File id request")
         db_response = db.download_file(
             request.owner_id,
             request.file_name
         )
+        logging.info(f"Send file request")
         requests.post(
             bot_url + "/send_file",
             jsonable_encoder(
@@ -71,18 +82,28 @@ def download_file(request: SendFileRequest) -> None:
                 )
             )
         )
+        logging.info(f"File sent")
+        return
 
+    logging.info(f"Permission denied")
     return
 
 
-# TODO:
 @app.post("/upload_file")
-def upload_file(request: UploadFileRequest) -> None:
-    if (len(request.file_name) > file_name_len or
-            len(request.file_id) > file_id_len or
-            len(request.file_description) > file_description_len):
+async def upload_file(request: UploadFileRequest) -> None:
+    if len(request.file_name) > file_name_len:
+        logging.warning(f"File name '{request.file_name}' is too long")
         return
 
+    if len(request.file_id) > file_id_len:
+        logging.warning(f"File id '{request.file_id}' is too long")
+        return
+
+    if len(request.file_description) > file_description_len:
+        logging.warning(f"File description '{request.file_description}' is too long")
+        return
+
+    logging.info(f"File upload with owner_id: {request.owner_id}, file_name: {request.file_name}")
     db.upload_file(request.owner_id,
                    request.file_id,
                    request.file_name,

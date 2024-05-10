@@ -1,14 +1,19 @@
 import logging
 import psycopg2
+from os import getenv
 
-# TODO: logs
-# TODO: db names
+logging.basicConfig(
+    level=logging.INFO,
+    filename="/var/log/server/database.log",
+    filemode="w",
+    format="%(asctime)s %(levelname)s %(message)s"
+)
 connection = psycopg2.connect(
-    dbname="bot_database",
-    host="database",
-    user="bot",
-    password="db_pass",
-    port="db_port"
+    dbname=f"{getenv("DB_NAME")}",
+    host=f"{getenv("POSTGRES_HOST")}",
+    user=f"{getenv("POSTGRES_USER")}",
+    password=f"{getenv("POSTGRES_PASSWORD")}",
+    port=f"{getenv("POSTGRES_PORT")}"
 )
 cursor = connection.cursor()
 table_name = f"FILES"
@@ -16,6 +21,7 @@ max_len = 5
 
 
 def upload_file(owner_id: int, file_id: str, file_name: str, file_description: str):
+    logging.info(f"Upload or update file response")
     cursor.execute(
         f""
         f"IF EXITS ("
@@ -32,10 +38,12 @@ def upload_file(owner_id: int, file_id: str, file_name: str, file_description: s
         (owner_id, file_name, file_id, file_name, file_description)
     )
     response = cursor.fetchall()
+    logging.info(f"Upload or update file response")
     return response
 
 
 def find_file(file_name: str):
+    logging.info(f"Search file request")
     cursor.execute(
         f"SELECT file_name, description"
         f"FROM {table_name}"
@@ -44,10 +52,12 @@ def find_file(file_name: str):
         ("%" + file_name + "%")
     )
     response = cursor.fetchall()
+    logging.info(f"Response with list of files")
     return response
 
 
 def download_file(owner_id: int, file_name: str):
+    logging.info(f"Search file_id request")
     cursor.execute(
         f"SELECT file_id"
         f"FROM {table_name}"
@@ -55,4 +65,5 @@ def download_file(owner_id: int, file_name: str):
         (owner_id, file_name)
     )
     response = cursor.fetchall()
+    logging.info(f"Response wit file_id")
     return response

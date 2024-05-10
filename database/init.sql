@@ -1,4 +1,3 @@
---Length
 CREATE TABLE IF NOT EXISTS FILES (
     owner_id INTEGER,
     file_id VARCHAR(255),
