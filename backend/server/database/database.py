@@ -9,11 +9,11 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s"
 )
 connection = psycopg2.connect(
-    dbname=f"{getenv("DB_NAME")}",
+    dbname=f"{getenv("POSTGRES_DB")}",
     host=f"{getenv("POSTGRES_HOST")}",
     user=f"{getenv("POSTGRES_USER")}",
     password=f"{getenv("POSTGRES_PASSWORD")}",
-    port=f"{getenv("POSTGRES_PORT")}"
+    port=int(getenv("POSTGRES_PORT"))
 )
 cursor = connection.cursor()
 table_name = f"FILES"
