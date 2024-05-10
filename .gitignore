@@ -44,6 +44,6 @@ out/
 /gradle/wrapper/
 /gradlew
 /gradlew.bat
-/bot/gradlew.bat
-/bot/gradlew
-/bot/gradle/
+/bot-app/gradlew.bat
+/bot-app/gradlew
+/bot-app/gradle/
