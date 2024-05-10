@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres
+    networks:
+      - back_db
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - /var/lib/postgresql/data
+
+  bot-app:
+    build:
+      context: ./bot-app
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - bot_back
+    depends_on:
+      - backend
+    env_file:
+      - ./bot/env.properties
+
+  back:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    command:
+    depends_on:
+      - postgres
+    networks:
+      - back_db
+      - bot_back
+
+networks:
+  bot_back:
+  back_db:
