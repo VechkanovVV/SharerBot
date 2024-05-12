@@ -1,15 +1,12 @@
 import logging
 import requests
-import database.database as db
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from server_requests.FindFileRequest import FindFileRequest
-from server_responses.FindFileResponse import FindFileResponse
-from server_requests.UploadFileRequest import UploadFileRequest
-from server_requests.SendFileRequest import SendFileRequest
-from bot_requests.SetPermissionRequest import SetPermissionRequest as BotSetPermissionRequest
-from bot_requests.SendFileRequest import SendFileRequest as BotSendFileRequest
+from . import crud, models, schemas
+from .database import SessionLocal, engine
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -17,80 +14,48 @@ logging.basicConfig(
     filemode="w",
     format="%(asctime)s %(levelname)s %(message)s"
 )
+
+bot_url = f"http://localhost:8081"
+
 file_id_len = 255
 file_name_len = 255
 file_description_len = 65535
-bot_url = f"http://localhost:8081"
+
+models.Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
 
-@app.get("/find_file")
-async def find_file(request: FindFileRequest) -> JSONResponse:
+@app.middleware("http")
+async def db_session_middleware(request: Request, call_next):
+    response = Response("Internal server error", status_code=500)
+    try:
+        request.state.db = SessionLocal()
+        response = await call_next(request)
+    finally:
+        request.state.db.close()
+    return response
+
+
+# Dependency
+def get_db(request: Request):
+    return request.state.db
+
+
+@app.post("/find_file")
+def find_file(request: schemas.FindFilesServerDBRequest, db: Session = Depends(get_db)): # -> JSONResponse:
     if len(request.file_name) > file_name_len:
         logging.warning(f"File name '{request.file_name}' is too long")
-        return jsonable_encoder([])
+        return JSONResponse(content=jsonable_encoder([]))
 
     logging.info(f"File search with file_name: {request.file_name}")
-    db_response = db.find_file(request.file_name)
-    response = jsonable_encoder(
-        [
-            FindFileResponse(
-                owner_id=row[0],
-                file_description=row[1],
-                file_name=row[2]
-            )
-            for row in db_response
-        ]
-    )
+    db_response = crud.find_files_by_name_pattern(db, request)
     logging.info(f"File search response")
-    return JSONResponse(content=response)
-
-
-@app.get("/download_file")
-async def download_file(request: SendFileRequest) -> None:
-    if len(request.file_name) > file_name_len:
-        logging.warning(f"File name '{request.file_name}' is too long")
-        return
-
-    logging.info(f"Permission request")
-    response = requests.post(
-        bot_url + "/request_permission",
-        jsonable_encoder(
-            BotSetPermissionRequest(
-                file_name=request.file_name,
-                owner_id=request.owner_id,
-                id=request.receiver_id
-            )
-        )
-    )
-
-    if response.status_code == 200:
-        logging.info(f"Permission received")
-        logging.info(f"File id request")
-        db_response = db.download_file(
-            request.owner_id,
-            request.file_name
-        )
-        logging.info(f"Send file request")
-        requests.post(
-            bot_url + "/send_file",
-            jsonable_encoder(
-                BotSendFileRequest(
-                    owner_id=request.owner_id,
-                    id=request.receiver_id,
-                    file_id=db_response[0]
-                )
-            )
-        )
-        logging.info(f"File sent")
-        return
-
-    logging.info(f"Permission denied")
-    return
+    return JSONResponse(content=jsonable_encoder(db_response))
 
 
 @app.post("/upload_file")
-async def upload_file(request: UploadFileRequest) -> None:
+def upload_file(request: schemas.UploadFileServerDBRequest, db: Session = Depends(get_db)) -> None:
     if len(request.file_name) > file_name_len:
         logging.warning(f"File name '{request.file_name}' is too long")
         return
@@ -103,9 +68,57 @@ async def upload_file(request: UploadFileRequest) -> None:
         logging.warning(f"File description '{request.file_description}' is too long")
         return
 
-    logging.info(f"File upload with owner_id: {request.owner_id}, file_name: {request.file_name}")
-    db.upload_file(request.owner_id,
-                   request.file_id,
-                   request.file_name,
-                   request.file_description)
+    logging.info(f"Check file existence with owner_id: {request.owner_id}, file_name: {request.file_name}")
+
+    if crud.find_file(db, schemas.FindFileDBRequest(owner_id=request.owner_id, file_name=request.file_name)):
+        logging.info(f"File with owner_id: {request.owner_id}, file_name: {request.file_name} exists")
+        logging.info(f"Record updating")
+        crud.update_record(db, request)
+        logging.info(f"Record updated")
+    else:
+        logging.info(f"File with owner_id: {request.owner_id}, file_name: {request.file_name} does not exist")
+        logging.info(f"Record creating")
+        crud.create_record(db, request)
+        logging.info(f"Record created")
+
+    return
+
+
+@app.post("/download_file")
+def download_file(request: schemas.SendFileServerRequest, db: Session = Depends(get_db)) -> None:
+    if len(request.file_name) > file_name_len:
+        logging.warning(f"File name '{request.file_name}' is too long")
+        return
+
+    logging.info(f"Permission request")
+    response = requests.post(
+        bot_url + "/request_permission",
+        jsonable_encoder(
+            schemas.SetPermissionBotRequest(
+                file_name=request.file_name,
+                owner_id=request.owner_id,
+                id=request.receiver_id
+            )
+        )
+    )
+
+    if response.status_code == 200:
+        logging.info(f"Permission received")
+        logging.info(f"File id request")
+        db_response = crud.find_file(db, schemas.FindFileDBRequest(owner_id=request.owner_id, file_name=request.file_name))
+        logging.info(f"Send file request")
+        requests.post(
+            bot_url + "/send_file",
+            jsonable_encoder(
+                schemas.SendFileBotRequest(
+                    owner_id=request.owner_id,
+                    id=request.receiver_id,
+                    file_id=db_response.file_id
+                )
+            )
+        )
+        logging.info(f"File sent")
+        return
+
+    logging.info(f"Permission denied")
     return

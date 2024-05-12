@@ -1,6 +1,8 @@
 FROM python:3.12
-WORKDIR /server
-COPY server/requirements.txt requirements.txt
+RUN mkdir -p /var/log/server
+WORKDIR /backend
+COPY ./server/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY ./server /backend
+WORKDIR /
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

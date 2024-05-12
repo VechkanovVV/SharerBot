@@ -1,5 +1,6 @@
 requests
+sqlalchemy
 fastapi
 psycopg2-binary
 uvicorn
-databases[postgresql]
+gevent
