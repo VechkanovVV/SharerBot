@@ -70,7 +70,10 @@ public class UserMessageProcess {
                 FilesListResponse response = backendClient.findFile(fileName);
                 log.info(response.toString());
                 StringBuilder message = new StringBuilder();
-                if (response.files().isEmpty()) {
+                if (response.files() == null){
+                    message.append("File does not exist, please provide another file");
+                }
+                else if (response.files().isEmpty()) {
                     message.append("File does not exist, please provide another file");
                 } else {
                     SEARCH_FIELS.put(chatStateInfo.getChatId(), new ArrayList<>());

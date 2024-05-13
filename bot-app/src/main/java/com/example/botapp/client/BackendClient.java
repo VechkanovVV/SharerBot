@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
-public class BackendClient {
+public class  BackendClient {
     private final WebClient backendClient;
 
     @Autowired
@@ -21,11 +21,9 @@ public class BackendClient {
 
     public FilesListResponse findFile(String fileName) {
         try {
-            return backendClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .pathSegment("find_file")
-                            .queryParam("file_name", fileName)
-                            .build())
+            return backendClient.post()
+                    .uri("find_file")
+                    .bodyValue("{\"file_name\": \"2.pdf\"}")
                     .retrieve()
                     .bodyToMono(FilesListResponse.class)
                     .block();
