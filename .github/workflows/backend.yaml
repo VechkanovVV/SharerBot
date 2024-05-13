@@ -3,12 +3,12 @@ name: Build back
 on:
   push:
     paths:
-      - 'backend/**'
+      - 'backend/server/**'
     branches: [ "main", "dev" ]
 
   pull_request:
     paths:
-      - 'backend/**'
+      - 'backend/server/**'
     branches: [ "main" , "dev" ]
 
 env:

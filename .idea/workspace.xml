@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a16677e5-dda7-438e-8dac-b2fb2e19b2e2" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/backend.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/backend.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2g8Tjiexjqe0vwAcs4w649DzY3O" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.FindFileRequest.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "backend",
+    "last_opened_file_path": "/home/VM/Learning/Program/SNA/project/SharerBot",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PY-241.14494.241" />
+        <option value="bundled-python-sdk-0509580d9d50-28c9f5db9ffe-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.14494.241" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a16677e5-dda7-438e-8dac-b2fb2e19b2e2" name="Changes" comment="" />
+      <created>1715078341767</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1715078341767</updated>
+      <workItem from="1715078342733" duration="6799000" />
+      <workItem from="1715158595187" duration="13931000" />
+      <workItem from="1715194573087" duration="1264000" />
+      <workItem from="1715196015241" duration="1616000" />
+      <workItem from="1715250907389" duration="12815000" />
+      <workItem from="1715276844348" duration="6688000" />
+      <workItem from="1715336934946" duration="32999000" />
+      <workItem from="1715414370256" duration="12051000" />
+      <workItem from="1715447000565" duration="4258000" />
+      <workItem from="1715456939071" duration="5420000" />
+      <workItem from="1715465290388" duration="2976000" />
+      <workItem from="1715503105321" duration="13187000" />
+      <workItem from="1715526749036" duration="4851000" />
+      <workItem from="1715533840620" duration="1786000" />
+      <workItem from="1715545476181" duration="1382000" />
+      <workItem from="1715546923810" duration="6159000" />
+      <workItem from="1715588404219" duration="50000" />
+      <workItem from="1715614407433" duration="9162000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/SharerBot$FindFileRequest.coverage" NAME="FindFileRequest Coverage Results" MODIFIED="1715283880281" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/server/server_requests" />
+  </component>
+</project>
