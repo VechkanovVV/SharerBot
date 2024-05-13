@@ -15,7 +15,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s"
 )
 
-bot_url = f"http://localhost:8081"
+bot_url = f"http://bot-app:8081"
 
 file_id_len = 255
 file_name_len = 255

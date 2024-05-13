@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: "bot_database"
+      POSTGRES_USER: "bot"
+      POSTGRES_PASSWORD: "change"
+      POSTGRES_PORT: 5432
+      SERVER_PORT: 8000
+      DB: "db"
+    ports:
+      - "5432:5432"
+    networks:
+      - back_db
+    command: >
+      postgres -c logging_collector=on
+               -c log_destination=stderr
+               -c log_directory=/var/log/postgresql
+               -c log_filename=postgresql.log
+
+  bot-app:
+    build:
+      context: ./bot-app
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - bot_back
+    depends_on:
+      - backend
+    env_file:
+      - ./bot/env.properties
+
+  back:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    environment:
+      POSTGRES_DB: "bot_database"
+      POSTGRES_USER: "bot"
+      POSTGRES_PASSWORD: "change"
+      POSTGRES_PORT: 5432
+      SERVER_PORT: 8000
+      DB: "db"
+      DATABASE_URL: "postgresql://bot:change@db:5432/bot_database"
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - bot_back
+      - back_db
+    restart: on-failure
+
+networks:
+  bot_back:
+  back_db:
