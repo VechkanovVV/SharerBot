@@ -32,6 +32,7 @@
   "keyToString": {
     "Python.FindFileRequest.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "dart.analysis.tool.window.visible": "false",
     "git-widget-placeholder": "dev",
     "last_opened_file_path": "/home/VM/Learning/Program/SNA/project/SharerBot",
     "node.js.detected.package.eslint": "true",
