@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
-public class  BackendClient {
+public class BackendClient {
     private final WebClient backendClient;
 
     @Autowired
@@ -20,13 +20,17 @@ public class  BackendClient {
     }
 
     public FilesListResponse findFile(String fileName) {
+        String contentType = "application/json";
         try {
             return backendClient.post()
                     .uri("find_file")
-                    .bodyValue("{\"file_name\": \"2.pdf\"}")
+                    .header("Accept", contentType)
+                    .header("Content-Type", contentType)
+                    .bodyValue(fileName)
                     .retrieve()
                     .bodyToMono(FilesListResponse.class)
                     .block();
+
         } catch (WebClientResponseException e) {
             if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw e;
@@ -34,6 +38,7 @@ public class  BackendClient {
             return new FilesListResponse(null);
         }
     }
+
 
     public void uploadFile(UploadFileRequest uploadFile) {
         backendClient.post()
