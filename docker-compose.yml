@@ -3,17 +3,17 @@ services:
   db:
     image: postgres:13
     restart: always
-    env_file:
-      - ./.env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      SERVER_PORT: ${SERVER_PORT}
-      DB: ${DB}
+      POSTGRES_DB: "bot_database"
+      POSTGRES_USER: "bot"
+      POSTGRES_PASSWORD: "change"
+      POSTGRES_PORT: 5432
+      SERVER_PORT: 8000
+      DB: "db"
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "5432:5432"
+    networks:
+      - internal_net
     command: >
       postgres -c logging_collector=on 
                -c log_destination=stderr 
@@ -22,20 +22,22 @@ services:
 
   server:
     build: ./backend
-    env_file:
-      - ./.env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      SERVER_PORT: ${SERVER_PORT}
-      DB: ${DB}
+      POSTGRES_DB: "bot_database"
+      POSTGRES_USER: "bot"
+      POSTGRES_PASSWORD: "change"
+      POSTGRES_PORT: 5432
+      SERVER_PORT: 8000
+      DB: "db"
+      DATABASE_URL: "postgresql://bot:change@db:5432/bot_database"
+
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "8000:8000"
     depends_on:
       - db
+    networks:
+      - internal_net
+    restart: on-failure
 
 networks:
-  default:
-    driver: bridge
+  internal_net:

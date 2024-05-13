@@ -21,7 +21,10 @@ file_id_len = 255
 file_name_len = 255
 file_description_len = 65535
 
-models.Base.metadata.create_all(bind=engine)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception:
+    exit(1)
 
 app = FastAPI()
 
