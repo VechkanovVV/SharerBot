@@ -37,7 +37,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+          if [ -f backend/server/requirements.txt ]; then pip install -r backend/server/requirements.txt; fi
 
       - name: Lint with flake8
         run: |
