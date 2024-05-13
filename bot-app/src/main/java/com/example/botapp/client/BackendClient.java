@@ -20,17 +20,15 @@ public class BackendClient {
     }
 
     public FilesListResponse findFile(String fileName) {
-        String contentType = "application/json";
         try {
-            return backendClient.post()
-                    .uri("find_file")
-                    .header("Accept", contentType)
-                    .header("Content-Type", contentType)
-                    .bodyValue(fileName)
+            return backendClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .pathSegment("find_file")
+                            .queryParam("file_name", fileName)
+                            .build())
                     .retrieve()
                     .bodyToMono(FilesListResponse.class)
                     .block();
-
         } catch (WebClientResponseException e) {
             if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw e;
@@ -38,7 +36,6 @@ public class BackendClient {
             return new FilesListResponse(null);
         }
     }
-
 
     public void uploadFile(UploadFileRequest uploadFile) {
         backendClient.post()
