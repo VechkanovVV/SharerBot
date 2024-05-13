@@ -1,3 +1,4 @@
 .idea
 backend/database/config/postgresql.conf
 .env
+backend/server/__pycache__
